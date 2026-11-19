@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오와 로그</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f3f1; --card:#ffffff; --ink:#1d2320; --muted:#68706b; --line:#dbdfdb;
+  --claret:#8a2341; --claret-soft:#f3e3e8;
+  --good:#2e7a57; --mid:#a87a1f; --bad:#a3443a;
+  --display:"Noto Serif KR","Apple SD Gothic Neo",serif;
+  --body:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#141816; --card:#1d2220; --ink:#e7ebe8; --muted:#9aa29d; --line:#2f3633;
+    --claret:#d8708e; --claret-soft:#3a2229; --good:#5fbf8f; --mid:#d6aa4f; --bad:#e07f73; color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.5; padding-bottom:84px}
+h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0}
+button,input,select,textarea{font:inherit; color:inherit}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px 16px}
+header.top{display:grid; gap:10px; padding:18px 16px 12px; max-width:640px; margin:0 auto}
+.brand{display:flex; align-items:baseline; justify-content:space-between; gap:8px}
+.brand h1{font-size:24px; letter-spacing:-.01em}
+.brand h1 span{color:var(--claret)}
+.who{color:var(--muted); font-size:13px; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline dotted}
+.meet-row{display:flex; gap:8px; align-items:center}
+.meet-row select{flex:1; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card)}
+.notice{background:var(--claret-soft); border-radius:10px; padding:10px 12px; font-size:14px}
+.notice[hidden]{display:none}
+nav.tabs{position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(4,1fr); z-index:5; padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs a{padding:12px 4px 14px; text-align:center; text-decoration:none; color:var(--muted); font-size:13px; font-weight:500}
+nav.tabs a.on{color:var(--claret); box-shadow:inset 0 3px 0 var(--claret)}
+section.view{display:none; gap:12px}
+section.view.on{display:grid}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px}
+.wine-head{display:flex; gap:12px; align-items:flex-start}
+.wine-head .grow{flex:1; min-width:0}
+.wine-name{font-weight:700}
+.meta{color:var(--muted); font-size:13px}
+.pill{display:inline-block; font-size:12px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--muted); white-space:nowrap}
+.pill.done{border-color:var(--good); color:var(--good)}
+.style-스파클링{--sc:#7a8fa6}.style-화이트{--sc:#b39b45}.style-로제{--sc:#c46b7d}.style-레드{--sc:#8a2341}.style-스위트{--sc:#b2703a}.style-기타{--sc:#68706b}
+.stripe{border-left:4px solid var(--sc, var(--line))}
+.thumb{width:52px; height:68px; border-radius:8px; object-fit:cover; background:var(--bg); border:1px solid var(--line); flex:none; cursor:zoom-in; padding:0}
+.thumb.ph{display:grid; place-items:center; color:var(--muted); font-size:11px; cursor:pointer; text-align:center; line-height:1.2}
+.crit{display:grid; grid-template-columns:52px 1fr; align-items:center; gap:8px; margin-top:10px}
+.crit label{font-size:13px; color:var(--muted)}
+.chips{display:flex; gap:6px; flex-wrap:wrap}
+.chip{min-width:40px; padding:8px 0; border-radius:10px; border:1px solid var(--line); background:transparent; cursor:pointer; text-align:center}
+.chip.wide{min-width:56px; padding:8px 10px}
+.chip[aria-pressed="true"]{background:var(--claret); border-color:var(--claret); color:#fff}
+.chip.rb-있음[aria-pressed="true"]{background:var(--good); border-color:var(--good)}
+.chip.rb-△[aria-pressed="true"]{background:var(--mid); border-color:var(--mid)}
+.chip.rb-없음[aria-pressed="true"]{background:var(--bad); border-color:var(--bad)}
+.chip:focus-visible,.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,nav.tabs a:focus-visible,.seg button:focus-visible{outline:2px solid var(--claret); outline-offset:2px}
+textarea,input[type=text],input[type=number],input[type=date],input[type=search],input[type=password]{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg)}
+textarea{min-height:44px; resize:vertical}
+.btn{padding:10px 14px; border-radius:10px; border:1px solid var(--claret); background:var(--claret); color:#fff; cursor:pointer; font-weight:500}
+.btn.ghost{background:transparent; color:var(--claret)}
+.btn.plain{background:transparent; color:var(--muted); border-color:var(--line)}
+.btn.small{padding:6px 10px; font-size:13px}
+.btn:disabled{opacity:.5; cursor:default}
+.row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.right{justify-content:flex-end}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.score{font-family:var(--display); font-size:22px; font-variant-numeric:tabular-nums}
+.rank{display:grid; grid-template-columns:28px auto 1fr auto; gap:10px; align-items:center}
+.rank .no{font-family:var(--display); font-size:18px; color:var(--muted); text-align:center}
+.rank .thumb{width:40px; height:52px}
+.bar{height:6px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:6px}
+.bar > i{display:block; height:100%; background:var(--claret)}
+.mini{display:grid; grid-template-columns:auto 1fr auto; gap:4px 10px; font-size:13px; margin-top:8px; font-variant-numeric:tabular-nums}
+details summary{cursor:pointer; color:var(--claret); font-size:13px; margin-top:8px}
+.empty{color:var(--muted); text-align:center; padding:24px 8px}
+.sect-title{font-size:17px}
+.kv{display:flex; justify-content:space-between; gap:8px; font-size:14px}
+.kv b{font-variant-numeric:tabular-nums; text-align:right}
+.styles{display:grid; gap:6px; margin-top:8px}
+.styles .s{display:grid; grid-template-columns:62px 1fr 34px; gap:8px; align-items:center; font-size:13px; font-variant-numeric:tabular-nums}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; text-align:center}
+.stats b{display:block; font-family:var(--display); font-size:18px; font-variant-numeric:tabular-nums}
+.stats span{font-size:12px; color:var(--muted)}
+.seg{display:grid; grid-template-columns:repeat(4,1fr); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:3px}
+.seg button{border:0; background:transparent; padding:8px 2px; border-radius:9px; font-size:13px; color:var(--muted); cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--claret-soft); color:var(--claret); font-weight:700}
+.year > summary{list-style:none; display:flex; justify-content:space-between; align-items:center; color:var(--ink); font-family:var(--display); font-size:17px; margin:4px 2px 8px; cursor:pointer}
+.year > summary::-webkit-details-marker{display:none}
+.year > summary::after{content:"▾"; color:var(--muted); font-size:14px}
+.year:not([open]) > summary::after{content:"▸"}
+.mcard{cursor:pointer; display:block; width:100%; text-align:left; margin-bottom:8px}
+.mcard:hover{border-color:var(--claret)}
+.lst{display:grid; gap:2px}
+.lst .it{display:grid; grid-template-columns:24px 1fr auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px}
+.lst .it:last-child{border-bottom:0}
+.lst .it .n{color:var(--muted); font-family:var(--display); text-align:center}
+.lst .it b{font-variant-numeric:tabular-nums}
+.filters{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+.filters select{padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--card); font-size:13px}
+/* dialogs / sheets */
+.sheet{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-end; justify-content:center; z-index:10}
+.sheet.on{display:flex}
+.sheet .panel{background:var(--card); width:100%; max-width:640px; max-height:92vh; overflow:auto; border-radius:18px 18px 0 0; padding:16px 16px calc(16px + env(safe-area-inset-bottom)); display:grid; gap:12px}
+.sheet .panel.center{border-radius:16px; max-width:360px; margin:auto; align-self:center}
+.sheet-head{display:flex; justify-content:space-between; align-items:center; gap:8px}
+.x{border:0; background:transparent; font-size:22px; line-height:1; color:var(--muted); cursor:pointer; padding:4px 8px}
+.viewer{position:fixed; inset:0; background:rgba(0,0,0,.88); display:none; align-items:center; justify-content:center; z-index:20; padding:16px}
+.viewer.on{display:flex}
+.viewer img{max-width:100%; max-height:100%; border-radius:8px}
+.labelPick{display:flex; gap:10px; align-items:center}
+.labelPick img{width:60px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--line)}
+.fld{display:grid; gap:4px}
+.fld > span{font-size:12px; color:var(--muted)}
+.wname{all:unset; cursor:pointer; font-weight:700; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px}
+.wname:hover{text-decoration-color:var(--claret)}
+.wname:focus-visible{outline:2px solid var(--claret); outline-offset:2px; border-radius:4px}
+.info-hero{display:flex; gap:12px; align-items:flex-start}
+.info-hero img{width:84px; height:112px; object-fit:cover; border-radius:10px; border:1px solid var(--line); cursor:zoom-in}
+.facts{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:14px}
+.facts dt{color:var(--muted)} .facts dd{margin:0}
+.isec h4{font-family:var(--display); font-size:15px; margin:0 0 4px; color:var(--claret)}
+.isec p{margin:0; white-space:pre-wrap}
+.toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:8px 14px; border-radius:99px; font-size:13px; z-index:30; opacity:0; pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion: no-preference){ .chip{transition:background .12s,border-color .12s} .toast{transition:opacity .2s} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>오와 <span>로그</span></h1><button class="who" id="who" type="button"></button></div>
+  <div class="meet-row">
+    <select id="meetSel" aria-label="모임 선택"></select>
+  </div>
+  <div class="notice" id="notice" hidden></div>
+</header>
+
+<main class="wrap">
+  <!-- 평가 -->
+  <section class="view" id="v-rate">
+    <div id="rateList"></div>
+    <button class="btn ghost" id="openAddWine" type="button">＋ 이 모임에 와인 추가</button>
+  </section>
+
+  <!-- 결과 -->
+  <section class="view" id="v-results"><div id="resultsBox"></div></section>
+
+  <!-- 회원 취향 -->
+  <section class="view" id="v-members">
+    <p class="meta" style="margin:0">모든 모임의 평가를 합쳐 계산해요. 점수는 향·맛·여운 평균(5점 만점)이에요.</p>
+    <div id="membersBox"></div>
+  </section>
+
+  <!-- 모임 기록 -->
+  <section class="view" id="v-history">
+    <div class="card"><div class="stats" id="statsBox"></div></div>
+    <div class="seg" role="group" aria-label="기록 보기" id="hSeg">
+      <button data-h="list" aria-pressed="true">모임</button>
+      <button data-h="top" aria-pressed="false">TOP 10</button>
+      <button data-h="value" aria-pressed="false">가성비</button>
+      <button data-h="search" aria-pressed="false">검색</button>
+    </div>
+    <div id="hBox"></div>
+    <div class="row">
+      <button class="btn" id="openAddMeet" type="button" style="flex:1">＋ 새 모임</button>
+      <button class="btn ghost" id="exportBtn" type="button">CSV 내보내기</button>
+    </div>
+    <div id="archiveBox"></div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="화면">
+  <a href="#rate" data-v="rate">평가</a>
+  <a href="#results" data-v="results">결과</a>
+  <a href="#members" data-v="members">회원 취향</a>
+  <a href="#history" data-v="history">모임 기록</a>
+</nav>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="panel" id="sheetPanel"></div></div>
+<div class="viewer" id="viewer"><img id="viewerImg" alt="라벨 사진"></div>
+<input type="file" id="fileIn" accept="image/*" hidden>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== 설정: Supabase 연결 정보 (비어 있으면 미리보기 모드) ===== */
+const CONFIG = { url:"https://lycqkionkchxwgyfeoei.supabase.co", key:"sb_publishable_kpquA-XuU2v5CP6xRSAL4g_pvIsw88h" };
+
+const STYLES=["스파클링","화이트","로제","레드","스위트","기타"];
+const CRIT=[["a","향"],["t","맛"],["f","여운"]];
+const RB=["있음","△","없음"];
+const S={meetings:[],wines:[],ratings:[],me:"",meetId:null,hView:"list",q:"",fStyle:"",fYear:"",fMember:""};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=n=>n==null||isNaN(n)?"–":n.toFixed(2);
+const won=n=>n?Number(n).toLocaleString("ko-KR")+"원":"";
+const manwon=n=>n?(n>=10000?Math.round(n/1000)/10+"만":Number(n).toLocaleString("ko-KR"))+"원":"–";
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function notice(msg){const n=$("notice"); n.hidden=!msg; n.textContent=msg||"";}
+let toastT; function toast(m){const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),1800);}
+
+/* ===== 와인 설명 (처음 들어 있는 5병) ===== */
+const INFO_FIELDS=[["grape","품종"],["region","지역"],["regionNote","지역 설명"],["producer","생산자"],["producerNote","생산자 특징"],["cuveeNote","퀴베 특징"],["serve","서빙 팁"]];
+const GEANTET="1954년 에드몽 장테와 베르나데트 팡시오가 결혼하면서 시작한 쥬브레 샹베흐땅의 가족 도멘이에요. 지금은 뱅상 장테와 아들 파비앙이 함께 운영하고, 쥬브레·샹볼 뮈지니·막사네 등에 밭이 있어요. 레드가 주력이고, 과일감이 풍부하면서 타닌이 섬세한 스타일로 평가받아요.\n라벨에 적힌 모토가 \"절제한다는 건 좋은 걸 마시는 것(Être sobre, c'est boire bon)\"이에요.";
+const SEED_INFO={
+  w1:{grape:"샤흐도네, 피노 누아 (빈티지마다 다름 · 예: 샤흐도네 56%, 피노 누아 44%)",region:"프랑스 샹파뉴",
+    regionNote:"파리 북동쪽의 서늘한 산지예요. 백악질 토양과 서늘한 기후 덕분에 산도가 높고 섬세한 베이스 와인이 나오고, 병 안에서 2차 발효를 시켜 기포를 만들어요.\n'밀레짐'은 작황이 좋은 한 해의 포도만으로 만든 빈티지 샴페인이라는 뜻이에요. 논빈티지보다 숙성 기간 기준이 길어요(최소 3년).",
+    producer:"샤흘 드 까자노브 (Charles de Cazanove)",
+    producerNote:"1811년 유리 공예 가문 출신 샤흘 가브리엘 드 까자노브가 코트 데 블랑의 아비즈에서 세웠고, 지금은 랭스에 본사가 있어요. 샹파뉴에서 손꼽히게 오래된 하우스이고, 현재는 라프노 가문이 소유하고 있어요.",
+    cuveeNote:"샤흐도네와 피노 누아를 비슷한 비율로 섞은 빈티지 브뤼예요. 샤흐도네의 시트러스·흰꽃 향에 피노 누아의 바디감이 더해지고, 긴 숙성에서 오는 브리오슈·견과 뉘앙스를 기대할 수 있어요.\n빈티지 표기가 비어 있으니 병에서 확인해 채워주세요.",
+    serve:"8–10°C · 식전주, 해산물, 튀김"},
+  w2:{grape:"소비뇽 블랑 100%",region:"프랑스 루아흐 · 상세흐",
+    regionNote:"루아흐강 상류의 언덕 마을로, 소비뇽 블랑의 기준이 되는 산지예요. 토양은 크게 실렉스(부싯돌), 카이요트(단단한 석회 조각), 떼흐 블랑슈(이회토) 세 가지예요. 실렉스는 스모키하고 날 선 미네랄을, 석회는 향긋하고 둥근 느낌을 준다고 해요.",
+    producer:"도멘 바슈홍 (Domaine Vacheron)",
+    producerNote:"1900년 무렵 시작한 가족 도멘으로, 사촌 사이인 장 로랑과 장 도미니크 바슈홍이 이끌어요. 2005년 바이오다이내믹 인증(Biodyvin)을 받았고, 손 수확과 토착 효모 발효를 고집해요. 상세흐 최상위 생산자로 꼽혀요.",
+    cuveeNote:"도멘의 기본 상세흐 블랑이에요. 수령 30–50년 된 나무에서 딴 실렉스 밭과 석회 밭 포도를 반씩 섞고, 탱크에서 4개월 정도 숙성해요. 자몽·레몬, 풀 향에 부싯돌 같은 미네랄이 특징이에요.",
+    serve:"8–10°C · 염소치즈, 굴, 흰살생선"},
+  w3:{grape:"샤흐도네 100%",region:"프랑스 부흐고뉴 (지방 단위 AOC)",
+    regionNote:"부흐고뉴 블랑은 부흐고뉴 전역의 샤흐도네로 만들 수 있는 가장 넓은 등급이에요. 마을·1등급·특등급보다 아래 단계지만, 좋은 도멘 것은 그 도멘 스타일을 부담 없이 맛보는 입문용으로 가치가 커요.",
+    producer:"도멘 장테 팡시오 (Domaine Geantet-Pansiot)",producerNote:GEANTET,
+    cuveeNote:"레드로 유명한 도멘이 만드는 화이트예요. 사과·레몬, 흰꽃 계열 향과 산뜻한 산도를 기대할 수 있어요. 같은 날 마시는 바슈홍 상세흐와 소비뇽 블랑 vs 샤흐도네로 비교해 보기 좋아요.",
+    serve:"10–12°C · 닭고기, 크림 소스, 버섯"},
+  w4:{grape:"피노 누아 100%",region:"프랑스 부흐고뉴 · 코트 드 뉘 · 막사네",
+    regionNote:"코트 드 뉘 맨 북쪽, 디종 바로 아래에 있는 마을이에요. 코트 드 뉘에서 레드·화이트·로제를 모두 만들 수 있는 유일한 마을 AOC예요. 아직 1등급 밭이 없지만 '레 롱주와'는 1등급 승격 후보로 꼽히는 대표 밭이에요.\n'롱주와'는 길고 좁은 고랑이라는 뜻으로, 경사를 따라 길게 뻗은 밭 모양에서 온 이름이에요. 석회질 자갈이 많은 토양이에요.",
+    producer:"도멘 장테 팡시오 (Domaine Geantet-Pansiot)",producerNote:GEANTET,
+    cuveeNote:"섬세한 타닌과 미네랄이 특징인 도멘의 막사네 대표 퀴베예요. 체리·라즈베리 같은 붉은 과일이 즙지게 느껴지고, 이웃 마을 쥬브레 샹베흐땅보다 가볍고 가격 부담이 적은 대안으로 좋아요.",
+    serve:"14–16°C · 디캔팅 30분 · 오리, 버섯 요리, 숙성 치즈"},
+  w5:{grape:"까베흐네 소비뇽 93%, 메흘로 7% (2017)",region:"프랑스 보르도 · 메독 · 생쥘리앙",
+    regionNote:"메독 한가운데, 포이약과 마고 사이의 작은 마을이에요. 자갈 토양 덕분에 까베흐네 소비뇽이 잘 익고, 면적에 비해 1855년 등급 샤토가 많아요. 포이약의 힘과 마고의 우아함 사이의 균형감으로 유명해요.",
+    producer:"샤토 레오빌 바흐똥 (Château Léoville Barton)",
+    producerNote:"1855년 등급 2등급(Second Cru)이에요. 18세기 메독 최대 영지였던 레오빌이 라스 카즈, 푸아페레, 바흐똥 셋으로 나뉜 것 중 하나예요. 아일랜드계 바흐똥 가문이 1826년부터 소유해 왔고, 지금은 릴리안 바흐똥 사흐토리우스와 자녀들(10대째)이 운영해요. 샤토 건물이 따로 없어 랑고아 바흐똥에서 양조해요. 2등급 중 가격이 합리적인 편으로 유명해요.",
+    cuveeNote:"2017년은 9월 비 때문에 메흘로와 까베흐네 프랑이 고전해서, 까베흐네 소비뇽 비중이 93%로 평소(밭 기준 약 74%)보다 훨씬 높아요. 새 오크 60%에서 숙성했고, 블랙커런트·블루베리·제비꽃 향에 단단한 구조가 특징이에요. 평론가 점수는 대체로 95–96점대이고, 마시기 좋은 시기는 2023년 이후로 보는 의견이 많아요.",
+    serve:"16–18°C · 디캔팅 1–2시간 · 스테이크, 양갈비"}
+};
+
+/* ===== 저장소: 미리보기(브라우저) ===== */
+function demoSeed(){
+  const m1={id:"m-next",title:"오와 다음 모임 (두 달 회비 40만)",date:"2026-12-05",place:"",attendees:"",memo:"",archived:false,createdAt:"2026-11-19"};
+  const m0={id:"m-ex",title:"10월 오와 (예시)",date:"2026-10-17",place:"을지로",attendees:"재홍, 회원A, 회원B",memo:"미리보기용 예시 모임이에요.",archived:false,createdAt:"2026-10-01"};
+  const m9={id:"m-ex2",title:"송년 오와 (예시)",date:"2025-12-20",place:"",attendees:"",memo:"",archived:false,createdAt:"2025-12-01"};
+  const W=(id,mid,o,name,vin,style,price,info)=>({id,meetingId:mid,order:o,name,vintage:vin,style,price,label:"",info:info||{},archived:false,createdAt:"2026-11-19"});
+  const wines=[
+    W("w1","m-next",1,"샤흘 드 까자노브 밀레짐","","스파클링",49840,SEED_INFO.w1),
+    W("w2","m-next",2,"바슈홍 상세흐","2023","화이트",69000,SEED_INFO.w2),
+    W("w3","m-next",3,"장테 팡시오 부흐고뉴 블랑","2022","화이트",46000,SEED_INFO.w3),
+    W("w4","m-next",4,"장테 팡시오 막사네 레 롱주와","2022","레드",99000,SEED_INFO.w4),
+    W("w5","m-next",5,"레오빌 바흐똥","2017","레드",125300,SEED_INFO.w5),
+    W("e1","m-ex",1,"예시 크레망","NV","스파클링",35000),
+    W("e2","m-ex",2,"예시 샤블리","2022","화이트",58000),
+    W("e3","m-ex",3,"예시 바롤로","2019","레드",110000),
+    W("e4","m-ex2",1,"예시 샴페인","NV","스파클링",89000),
+    W("e5","m-ex2",2,"예시 소테른","2015","스위트",72000)];
+  const R=(w,m,a,t,f,rb,note)=>({wineId:w,member:m,a,t,f,rebuy:rb,note:note||"",updatedAt:"2026-10-17"});
+  const ratings=[R("e1","재홍",3,3,3,"△"),R("e1","회원A",4,3,3,"있음","가볍게 좋음"),R("e1","회원B",3,3,2,"없음"),
+    R("e2","재홍",4,4,4,"있음","미네랄 좋다"),R("e2","회원A",3,4,3,"△"),R("e2","회원B",4,4,3,"있음"),
+    R("e3","재홍",5,4,5,"있음","오늘의 와인"),R("e3","회원A",4,4,4,"있음"),R("e3","회원B",3,3,4,"△","타닌 셈"),
+    R("e4","재홍",4,4,3,"△"),R("e4","회원A",5,4,4,"있음"),R("e5","재홍",4,5,4,"있음"),R("e5","회원B",5,5,4,"있음","최고")];
+  return {meetings:[m1,m0,m9],wines,ratings};
+}
+const DemoStore={
+  K:"owa-log-demo-v3", d:null, cbs:[],
+  async init(){ let raw=lsGet(this.K); try{this.d=raw?JSON.parse(raw):null}catch(e){} if(!this.d) this.d=demoSeed(); this.emit(); },
+  save(){ lsSet(this.K,JSON.stringify(this.d)); this.emit(); },
+  emit(){ this.cbs.forEach(cb=>cb(JSON.parse(JSON.stringify(this.d)))); },
+  onChange(cb){ this.cbs.push(cb); },
+  async upsert(table,row,keyFn){ const arr=this.d[table]; const i=arr.findIndex(x=>keyFn(x)===keyFn(row)); if(i>=0) arr[i]={...arr[i],...row}; else arr.push(row); this.save(); },
+  saveMeeting(m){ return this.upsert("meetings",m,x=>x.id); },
+  saveWine(w){ return this.upsert("wines",w,x=>x.id); },
+  saveRating(r){ return this.upsert("ratings",r,x=>x.wineId+"|"+x.member); },
+  async uploadLabel(blob){ return await new Promise(res=>{const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob);}); },
+  reset(){ this.d=demoSeed(); this.save(); }
+};
+
+/* ===== 저장소: Supabase (깃허브 배포용) ===== */
+const SupaStore={
+  sb:null, cbs:[], d:{meetings:[],wines:[],ratings:[]},
+  async init(teamKey){
+    await new Promise((res,rej)=>{const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"; s.onload=res; s.onerror=rej; document.head.appendChild(s);});
+    this.sb=supabase.createClient(CONFIG.url,CONFIG.key,{global:{headers:{"x-owa-key":teamKey}},auth:{persistSession:false}});
+    const ok=await this.sb.rpc("owa_ok"); if(ok.error) throw ok.error; if(ok.data!==true) throw new Error("bad key");
+    await this.reload();
+    setInterval(()=>{ if(document.visibilityState==="visible") this.reload().catch(()=>{}); },20000);
+    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") this.reload().catch(()=>{}); });
+  },
+  t:null, reloadSoon(){ clearTimeout(this.t); this.t=setTimeout(()=>this.reload(),400); },
+  async reload(){
+    const [m,w,r]=await Promise.all([this.sb.from("meetings").select("*"),this.sb.from("wines").select("*"),this.sb.from("ratings").select("*")]);
+    if(m.error) throw m.error;
+    const cm=x=>({id:x.id,title:x.title,date:x.date||"",place:x.place||"",attendees:x.attendees||"",memo:x.memo||"",archived:x.archived,createdAt:x.created_at});
+    const cw=x=>({id:x.id,meetingId:x.meeting_id,order:x.sort,name:x.name,vintage:x.vintage||"",style:x.style,price:x.price||0,label:x.label_url||"",info:x.info||{},archived:x.archived,createdAt:x.created_at});
+    const cr=x=>({wineId:x.wine_id,member:x.member,a:x.a,t:x.t,f:x.f,rebuy:x.rebuy||"",note:x.note||"",updatedAt:x.updated_at});
+    this.d={meetings:m.data.map(cm),wines:(w.data||[]).map(cw),ratings:(r.data||[]).map(cr)};
+    this.cbs.forEach(cb=>cb(this.d));
+  },
+  onChange(cb){ this.cbs.push(cb); },
+  async run(q){ const {error}=await q; if(error) throw error; this.reloadSoon(); },
+  saveMeeting(m){ return this.run(this.sb.from("meetings").upsert({id:m.id,title:m.title,date:m.date||null,place:m.place,attendees:m.attendees,memo:m.memo,archived:!!m.archived})); },
+  saveWine(w){ return this.run(this.sb.from("wines").upsert({id:w.id,meeting_id:w.meetingId,sort:w.order,name:w.name,vintage:w.vintage,style:w.style,price:w.price||0,label_url:w.label||null,info:w.info||{},archived:!!w.archived})); },
+  saveRating(r){ return this.run(this.sb.from("ratings").upsert({wine_id:r.wineId,member:r.member,a:r.a??null,t:r.t??null,f:r.f??null,rebuy:r.rebuy||null,note:r.note||null,updated_at:new Date().toISOString()})); },
+  async uploadLabel(blob){ const path=uid()+".jpg"; const {error}=await this.sb.storage.from("labels").upload(path,blob,{contentType:"image/jpeg"}); if(error) throw error; return this.sb.storage.from("labels").getPublicUrl(path).data.publicUrl; }
+};
+const DEMO=!CONFIG.url;
+const Store=DEMO?DemoStore:SupaStore;
+
+/* ===== 계산 ===== */
+const live=()=>({meetings:S.meetings.filter(m=>!m.archived), wines:S.wines.filter(w=>!w.archived)});
+function total(r){ if(!r) return null; const v=CRIT.map(([k])=>r[k]).filter(x=>typeof x==="number"); return v.length===3?v.reduce((a,b)=>a+b,0)/3:null; }
+function myRating(wid){ return S.ratings.find(r=>r.wineId===wid&&r.member===S.me)||{}; }
+function wineStats(w){
+  const rs=S.ratings.filter(r=>r.wineId===w.id); const done=rs.map(r=>({r,t:total(r)})).filter(x=>x.t!=null); const n=done.length;
+  const by=k=>n?done.reduce((a,x)=>a+x.r[k],0)/n:null;
+  const rb=rs.filter(r=>r.rebuy); const yes=rb.filter(r=>r.rebuy==="있음").length;
+  return {w,n,avg:n?done.reduce((a,x)=>a+x.t,0)/n:null,a:by("a"),t:by("t"),f:by("f"),rbN:rb.length,yes,rs};
+}
+function meetWines(mid){ return live().wines.filter(w=>w.meetingId===mid).sort((a,b)=>(a.order||0)-(b.order||0)); }
+const meetById=id=>S.meetings.find(m=>m.id===id);
+const yearOf=m=>(m.date||m.createdAt||"").slice(0,4)||"날짜 미정";
+
+/* ===== 라우팅 ===== */
+function route(){
+  const v=(location.hash||"#rate").slice(1); const name=["rate","results","members","history"].includes(v)?v:"rate";
+  document.querySelectorAll("section.view").forEach(s=>s.classList.toggle("on",s.id==="v-"+name));
+  document.querySelectorAll("nav.tabs a").forEach(a=>a.classList.toggle("on",a.dataset.v===name));
+}
+addEventListener("hashchange",route); route();
+
+/* ===== 공통 조각 ===== */
+function wname(w){ return `<button class="wname" data-info="${esc(w.id)}">${esc(w.name)} ${esc(w.vintage||"")}</button>`; }
+function thumb(w,cls=""){ return w.label?`<button class="thumb ${cls}" data-view="${esc(w.id)}" aria-label="라벨 크게 보기" style="background:url('${esc(w.label)}') center/cover"></button>`:`<div class="thumb ph ${cls}" aria-hidden="true">${esc((w.style||"").slice(0,2))}</div>`; }
+
+/* ===== 평가 ===== */
+let rateStale=false;
+function renderRate(){
+  const box=$("rateList"); const ae=document.activeElement;
+  if(ae&&ae.tagName==="TEXTAREA"&&box.contains(ae)){ rateStale=true; return; } rateStale=false;
+  if(!S.meetId){ box.innerHTML='<div class="card empty">모임이 아직 없어요. "모임 기록" 탭에서 새 모임을 만들어주세요.</div>'; return; }
+  const ws=meetWines(S.meetId);
+  if(!ws.length){ box.innerHTML='<div class="card empty">이 모임에 와인이 아직 없어요.</div>'; return; }
+  box.innerHTML=ws.map((w,i)=>{ const r=myRating(w.id); const done=total(r)!=null;
+    return `<div class="card stripe style-${esc(w.style||"기타")}" data-w="${esc(w.id)}" style="margin-bottom:10px">
+      <div class="wine-head">${thumb(w)}<div class="grow"><div class="wine-name">${i+1}. ${wname(w)}</div>
+        <div class="meta">${esc(w.style)}${w.price?" · "+won(w.price):""}</div>
+        <div class="row" style="margin-top:6px"><span class="pill ${done?"done":""}">${done?"내 점수 "+fmt(total(r)):"미평가"}</span><button class="btn plain small" data-edit>수정</button></div></div></div>
+      ${CRIT.map(([k,lab])=>`<div class="crit"><label>${lab}</label><div class="chips" role="group" aria-label="${lab}">${[1,2,3,4,5].map(n=>`<button class="chip" data-k="${k}" data-n="${n}" aria-pressed="${r[k]===n}">${n}</button>`).join("")}</div></div>`).join("")}
+      <div class="crit"><label>재구매</label><div class="chips" role="group" aria-label="재구매 의사">${RB.map(x=>`<button class="chip wide rb-${x}" data-rb="${x}" aria-pressed="${r.rebuy===x}">${x}</button>`).join("")}</div></div>
+      <div style="margin-top:10px"><textarea data-note placeholder="한 줄 메모 (선택)" aria-label="메모">${esc(r.note||"")}</textarea></div>
+    </div>`; }).join("");
+}
+$("rateList").addEventListener("click",e=>{
+  const card=e.target.closest("[data-w]"); if(!card) return; const wid=card.dataset.w; const b=e.target.closest("button"); if(!b) return;
+  if(b.hasAttribute("data-edit")){ openWineSheet(S.wines.find(w=>w.id===wid)); return; }
+  if(!S.me){ askName(); return; }
+  const r={...myRating(wid),wineId:wid,member:S.me};
+  if(b.dataset.k){ const n=+b.dataset.n; r[b.dataset.k]=r[b.dataset.k]===n?null:n; }
+  else if(b.dataset.rb){ r.rebuy=r.rebuy===b.dataset.rb?"":b.dataset.rb; } else return;
+  writeRating(r);
+});
+let noteT={};
+$("rateList").addEventListener("input",e=>{
+  if(!e.target.hasAttribute("data-note")) return; const wid=e.target.closest("[data-w]").dataset.w;
+  if(!S.me){ askName(); return; }
+  const r={...myRating(wid),wineId:wid,member:S.me,note:e.target.value.slice(0,300)};
+  const i=S.ratings.findIndex(x=>x.wineId===wid&&x.member===S.me); if(i>=0) S.ratings[i]=r; else S.ratings.push(r);
+  clearTimeout(noteT[wid]); noteT[wid]=setTimeout(()=>writeRating(r,true),900);
+});
+$("rateList").addEventListener("focusout",()=>setTimeout(()=>{ if(rateStale) renderRate(); },0));
+async function writeRating(r,quiet){
+  const i=S.ratings.findIndex(x=>x.wineId===r.wineId&&x.member===r.member); if(i>=0) S.ratings[i]=r; else S.ratings.push(r);
+  if(!quiet) renderAll();
+  try{ await Store.saveRating(r); notice(""); }catch(err){ notice("저장하지 못했어요. 연결을 확인해주세요."); }
+}
+
+/* ===== 결과 ===== */
+function renderResults(){
+  const box=$("resultsBox"); const ws=S.meetId?meetWines(S.meetId):[];
+  if(!ws.length){ box.innerHTML='<div class="card empty">이 모임에 평가할 와인이 없어요.</div>'; return; }
+  const st=ws.map(wineStats).sort((x,y)=>(y.avg??-1)-(x.avg??-1));
+  const raters=new Set(); st.forEach(s=>s.rs.forEach(r=>raters.add(r.member)));
+  const spend=ws.reduce((a,w)=>a+(+w.price||0),0);
+  box.innerHTML=`<div class="card"><div class="kv"><span>평가한 회원</span><b>${raters.size}명</b></div><div class="kv"><span>와인</span><b>${ws.length}병${spend?" · "+won(spend):""}</b></div>${st[0]&&st[0].avg!=null?`<div class="kv"><span>오늘의 1등</span><b>${esc(st[0].w.name)}</b></div>`:""}</div>`+
+  st.map((s,i)=>`<div class="card stripe style-${esc(s.w.style||"기타")}">
+    <div class="rank"><div class="no">${s.avg!=null?i+1:"–"}</div>${thumb(s.w)}
+      <div style="min-width:0"><div class="wine-name">${wname(s.w)}</div><div class="meta">${s.n}명 평가${s.rbN?` · 재구매 ${Math.round(s.yes/s.rbN*100)}%`:""}</div>
+      <div class="bar"><i style="width:${s.avg?s.avg/5*100:0}%"></i></div></div>
+      <div class="score">${fmt(s.avg)}</div></div>
+    <div class="mini"><span>향</span><span></span><b>${fmt(s.a)}</b><span>맛</span><span></span><b>${fmt(s.t)}</b><span>여운</span><span></span><b>${fmt(s.f)}</b></div>
+    ${s.rs.length?`<details><summary>회원별 평가 보기</summary><div class="mini">${s.rs.map(r=>`<span>${esc(r.member)}</span><span class="meta">${esc(r.rebuy||"")} ${esc(r.note||"")}</span><b>${fmt(total(r))}</b>`).join("")}</div></details>`:""}
+  </div>`).join("");
+}
+
+/* ===== 회원 취향 ===== */
+function renderMembers(){
+  const box=$("membersBox"); const wmap=Object.fromEntries(live().wines.map(w=>[w.id,w]));
+  const all=S.ratings.map(r=>({r,w:wmap[r.wineId],t:total(r)})).filter(x=>x.w&&x.t!=null);
+  if(!all.length){ box.innerHTML='<div class="card empty">아직 완료된 평가가 없어요.</div>'; return; }
+  const wa={}; all.forEach(x=>(wa[x.w.id]=wa[x.w.id]||[]).push(x.t)); for(const k in wa) wa[k]=wa[k].reduce((p,c)=>p+c,0)/wa[k].length;
+  const users=[...new Set(all.map(x=>x.r.member))].sort((a,b)=>(b===S.me)-(a===S.me));
+  box.innerHTML=users.map(u=>{
+    const mine=all.filter(x=>x.r.member===u); const avg=mine.reduce((a,x)=>a+x.t,0)/mine.length;
+    const gen=mine.reduce((a,x)=>a+(x.t-wa[x.w.id]),0)/mine.length;
+    const byStyle=STYLES.map(s=>{const v=mine.filter(x=>(x.w.style||"기타")===s); return {s,n:v.length,avg:v.length?v.reduce((a,x)=>a+x.t,0)/v.length:null};}).filter(x=>x.n);
+    const fav=[...byStyle].sort((a,b)=>b.avg-a.avg)[0]; const top=[...mine].sort((a,b)=>b.t-a.t).slice(0,3);
+    const rb=mine.filter(x=>x.r.rebuy); const yes=rb.filter(x=>x.r.rebuy==="있음").length;
+    return `<div class="card">
+      <div class="wine-head"><h3 class="sect-title grow">${esc(u)}${u===S.me?' <span class="meta">(나)</span>':""}</h3><span class="pill">${mine.length}병 평가</span></div>
+      <div class="kv" style="margin-top:8px"><span>평균 점수</span><b>${fmt(avg)}</b></div>
+      <div class="kv"><span>평가 성향</span><b>${gen>0.15?"후한 편":gen<-0.15?"까다로운 편":"평균적"} (${gen>=0?"+":""}${gen.toFixed(2)})</b></div>
+      ${rb.length?`<div class="kv"><span>재구매 '있음' 비율</span><b>${Math.round(yes/rb.length*100)}%</b></div>`:""}
+      ${fav?`<div class="kv"><span>가장 좋아한 종류</span><b>${fav.s}</b></div>`:""}
+      <div class="styles">${byStyle.map(x=>`<div class="s style-${x.s}"><span>${x.s}</span><div class="bar" style="margin:0"><i style="width:${x.avg/5*100}%;background:var(--sc)"></i></div><b>${fmt(x.avg)}</b></div>`).join("")}</div>
+      <div class="meta" style="margin-top:10px">최고 점수 와인</div>
+      <div class="mini">${top.map(x=>`<span>${esc(x.w.name)}</span><span class="meta">${esc(x.w.vintage)}</span><b>${fmt(x.t)}</b>`).join("")}</div>
+    </div>`; }).join("");
+}
+
+/* ===== 모임 기록 ===== */
+function renderStats(){
+  const {meetings,wines}=live(); const spend=wines.reduce((a,w)=>a+(+w.price||0),0); const priced=wines.filter(w=>+w.price>0);
+  $("statsBox").innerHTML=`<div><b>${meetings.length}</b><span>모임</span></div><div><b>${wines.length}</b><span>와인</span></div><div><b>${manwon(spend)}</b><span>총 지출</span></div><div><b>${priced.length?manwon(Math.round(spend/priced.length)):"–"}</b><span>병당 평균</span></div>`;
+}
+function renderHistory(){
+  renderStats();
+  document.querySelectorAll("#hSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.h===S.hView));
+  const box=$("hBox"); const {meetings,wines}=live();
+  if(S.hView==="list"){
+    if(!meetings.length){ box.innerHTML='<div class="card empty">아직 모임이 없어요.</div>'; }
+    else{
+      const sorted=[...meetings].sort((a,b)=>String(b.date||b.createdAt).localeCompare(String(a.date||a.createdAt)));
+      const years=[...new Set(sorted.map(yearOf))];
+      box.innerHTML=years.map((y,yi)=>{ const ms=sorted.filter(m=>yearOf(m)===y);
+        return `<details class="year" ${yi===0?"open":""}><summary><span>${esc(y)} <span class="meta">· ${ms.length}회</span></span></summary>${ms.map(m=>{
+          const ws=meetWines(m.id); const st=ws.map(wineStats).filter(s=>s.avg!=null).sort((a,b)=>b.avg-a.avg); const spend=ws.reduce((a,w)=>a+(+w.price||0),0);
+          return `<button class="card mcard" data-open="${esc(m.id)}"><div class="wine-head"><div class="grow"><div class="wine-name">${esc(m.title)}</div>
+            <div class="meta">${esc(m.date||"날짜 미정")}${m.place?" · "+esc(m.place):""} · ${ws.length}병${spend?" · "+won(spend):""}</div>
+            ${st[0]?`<div class="meta" style="margin-top:4px">🏆 ${esc(st[0].w.name)} (${fmt(st[0].avg)})</div>`:""}</div>
+            ${m.id===S.meetId?'<span class="pill done">선택됨</span>':""}</div></button>`; }).join("")}</details>`; }).join("");
+    }
+  } else if(S.hView==="top"){
+    const st=wines.map(wineStats).filter(s=>s.avg!=null).sort((a,b)=>b.avg-a.avg||b.n-a.n).slice(0,10);
+    box.innerHTML=`<div class="card"><h3 class="sect-title">명예의 전당</h3><p class="meta" style="margin:2px 0 6px">역대 평균 점수 상위 10병</p>${st.length?`<div class="lst">${st.map((s,i)=>`<div class="it"><span class="n">${i+1}</span><span>${wname(s.w)}<br><span class="meta">${esc(meetById(s.w.meetingId)?.title||"")} · ${s.n}명</span></span><b>${fmt(s.avg)}</b></div>`).join("")}</div>`:'<div class="empty">평가가 쌓이면 보여요.</div>'}</div>`;
+  } else if(S.hView==="value"){
+    const st=wines.filter(w=>+w.price>0).map(wineStats).filter(s=>s.avg!=null).map(s=>({...s,v:s.avg/(s.w.price/100000)})).sort((a,b)=>b.v-a.v).slice(0,10);
+    box.innerHTML=`<div class="card"><h3 class="sect-title">가성비 순위</h3><p class="meta" style="margin:2px 0 6px">평균 점수 ÷ 가격(10만원 기준). 높을수록 값어치를 한 와인이에요.</p>${st.length?`<div class="lst">${st.map((s,i)=>`<div class="it"><span class="n">${i+1}</span><span>${wname(s.w)}<br><span class="meta">${fmt(s.avg)}점 · ${won(s.w.price)}</span></span><b>${s.v.toFixed(1)}</b></div>`).join("")}</div>`:'<div class="empty">가격과 평가가 있는 와인이 쌓이면 보여요.</div>'}</div>`;
+  } else {
+    const yrs=[...new Set(meetings.map(yearOf))].sort().reverse(); const mems=[...new Set(S.ratings.map(r=>r.member))].sort();
+    const q=S.q.trim().toLowerCase();
+    let res=wines.filter(w=>meetById(w.meetingId)&&!meetById(w.meetingId).archived);
+    if(q) res=res.filter(w=>(w.name+" "+w.vintage).toLowerCase().includes(q));
+    if(S.fStyle) res=res.filter(w=>w.style===S.fStyle);
+    if(S.fYear) res=res.filter(w=>yearOf(meetById(w.meetingId))===S.fYear);
+    let st=res.map(wineStats);
+    if(S.fMember) st=st.map(s=>({...s,mineR:s.rs.find(r=>r.member===S.fMember)})).filter(s=>s.mineR);
+    st.sort((a,b)=>String(meetById(b.w.meetingId).date).localeCompare(String(meetById(a.w.meetingId).date)));
+    box.innerHTML=`<div class="card"><input type="search" id="qIn" placeholder="와인 이름 검색 (예: 바롤로)" value="${esc(S.q)}" aria-label="와인 검색">
+      <div class="filters">
+        <select id="fStyle" aria-label="종류"><option value="">모든 종류</option>${STYLES.map(s=>`<option ${S.fStyle===s?"selected":""}>${s}</option>`).join("")}</select>
+        <select id="fYear" aria-label="연도"><option value="">모든 연도</option>${yrs.map(y=>`<option ${S.fYear===y?"selected":""}>${esc(y)}</option>`).join("")}</select>
+        <select id="fMember" aria-label="회원"><option value="">모든 회원</option>${mems.map(m=>`<option ${S.fMember===m?"selected":""}>${esc(m)}</option>`).join("")}</select>
+      </div></div>
+      <div class="card"><p class="meta" style="margin:0 0 4px">${st.length}병${S.fMember?` · ${esc(S.fMember)}님 점수`:""}</p>${st.length?`<div class="lst">${st.map(s=>{const m=meetById(s.w.meetingId); const sc=S.fMember?total(s.mineR):s.avg;
+        return `<div class="it" data-open="${esc(m.id)}" style="cursor:pointer"><span class="n style-${esc(s.w.style)}" style="color:var(--sc)">●</span><span>${wname(s.w)}<br><span class="meta">${esc(m.title)} · ${esc(m.date||"")}</span></span><b>${fmt(sc)}</b></div>`;}).join("")}</div>`:'<div class="empty">찾는 와인이 없어요.</div>'}</div>`;
+  }
+  // 보관함
+  const arch=S.meetings.filter(m=>m.archived); const archW=S.wines.filter(w=>w.archived&&meetById(w.meetingId)&&!meetById(w.meetingId).archived);
+  $("archiveBox").innerHTML=(arch.length||archW.length)?`<details class="card"><summary style="margin:0">보관함 (${arch.length+archW.length})</summary><div class="lst" style="margin-top:8px">
+    ${arch.map(m=>`<div class="it"><span class="n">📁</span><span>${esc(m.title)}<br><span class="meta">모임 · ${esc(m.date||"")}</span></span><button class="btn ghost small" data-restore-m="${esc(m.id)}">복구</button></div>`).join("")}
+    ${archW.map(w=>`<div class="it"><span class="n">🍷</span><span>${esc(w.name)} ${esc(w.vintage)}<br><span class="meta">와인 · ${esc(meetById(w.meetingId)?.title||"")}</span></span><button class="btn ghost small" data-restore-w="${esc(w.id)}">복구</button></div>`).join("")}
+  </div></details>`:"";
+}
+$("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-h]"); if(!b) return; S.hView=b.dataset.h; renderHistory(); if(S.hView==="search") $("qIn")?.focus(); });
+$("hBox").addEventListener("click",e=>{ const o=e.target.closest("[data-open]"); if(o) openMeetSheet(o.dataset.open); });
+$("hBox").addEventListener("input",e=>{ if(e.target.id==="qIn"){ S.q=e.target.value; const pos=e.target.selectionStart; renderHistory(); const q=$("qIn"); q.focus(); q.setSelectionRange(pos,pos);} });
+$("hBox").addEventListener("change",e=>{ if(["fStyle","fYear","fMember"].includes(e.target.id)){ S[e.target.id]=e.target.value; renderHistory(); } });
+$("archiveBox").addEventListener("click",async e=>{
+  const m=e.target.closest("[data-restore-m]"), w=e.target.closest("[data-restore-w]");
+  if(m){ const x=meetById(m.dataset.restoreM); await Store.saveMeeting({...x,archived:false}); toast("모임을 복구했어요"); }
+  if(w){ const x=S.wines.find(v=>v.id===w.dataset.restoreW); await Store.saveWine({...x,archived:false}); toast("와인을 복구했어요"); }
+});
+
+/* ===== 시트(다이얼로그) ===== */
+let sheetClose=null;
+function openSheet(html,{center=false,onClose}={}){ const p=$("sheetPanel"); p.className="panel"+(center?" center":""); p.innerHTML=html; $("sheet").classList.add("on"); sheetClose=onClose||null; const f=p.querySelector("input,textarea,button.btn"); f&&f.focus({preventScroll:true}); }
+function closeSheet(){ $("sheet").classList.remove("on"); const cb=sheetClose; sheetClose=null; cb&&cb(); }
+$("sheet").addEventListener("click",e=>{ if(e.target.id==="sheet"||e.target.closest("[data-close]")) closeSheet(); });
+addEventListener("keydown",e=>{ if(e.key==="Escape"){ if($("viewer").classList.contains("on")) $("viewer").classList.remove("on"); else if($("sheet").classList.contains("on")) closeSheet(); } });
+function confirmBox(msg,yes,cb){ openSheet(`<div>${esc(msg)}</div><div class="row right"><button class="btn plain small" data-close>취소</button><button class="btn small" id="cfYes">${esc(yes)}</button></div>`,{center:true}); $("cfYes").onclick=()=>{ closeSheet(); cb(); }; }
+
+/* 라벨 보기 */
+document.addEventListener("click",e=>{ const v=e.target.closest("[data-view]"); if(!v) return; const w=S.wines.find(x=>x.id===v.dataset.view); if(!w||!w.label) return; $("viewerImg").src=w.label; $("viewer").classList.add("on"); });
+$("viewer").addEventListener("click",()=>$("viewer").classList.remove("on"));
+
+/* 와인 설명 보기·수정 */
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-info]"); if(!b) return; e.stopPropagation(); e.preventDefault(); openInfoSheet(b.dataset.info); },true);
+function openInfoSheet(wid){
+  const w=S.wines.find(x=>x.id===wid); if(!w) return; const info=w.info||{}; const m=meetById(w.meetingId); const s=wineStats(w);
+  const has=INFO_FIELDS.some(([k])=>info[k]);
+  const secs=[["regionNote","지역 이야기"],["producerNote","생산자"],["cuveeNote","이 와인(퀴베)"]].filter(([k])=>info[k]);
+  openSheet(`<div class="sheet-head"><h3 class="sect-title">${esc(w.name)} ${esc(w.vintage||"")}</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    <div class="info-hero">${w.label?`<img src="${esc(w.label)}" alt="라벨" data-view="${esc(w.id)}">`:""}
+      <dl class="facts" style="margin:0; flex:1">
+        <dt>종류</dt><dd>${esc(w.style||"–")}</dd>
+        ${info.grape?`<dt>품종</dt><dd>${esc(info.grape)}</dd>`:""}
+        ${info.region?`<dt>지역</dt><dd>${esc(info.region)}</dd>`:""}
+        ${info.producer?`<dt>생산자</dt><dd>${esc(info.producer)}</dd>`:""}
+        ${w.price?`<dt>가격</dt><dd>${won(w.price)}</dd>`:""}
+        ${s.avg!=null?`<dt>오와 점수</dt><dd><b>${fmt(s.avg)}</b> <span class="meta">(${s.n}명)</span></dd>`:""}
+        ${m?`<dt>모임</dt><dd>${esc(m.title)}</dd>`:""}
+      </dl></div>
+    ${secs.map(([k,t])=>`<div class="isec"><h4>${t}</h4><p>${esc(info[k])}</p></div>`).join("")}
+    ${info.serve?`<div class="notice">🍷 ${esc(info.serve)}</div>`:""}
+    ${has?"":`<div class="card empty" style="padding:16px">아직 설명이 없어요.<br><span style="font-size:13px">직접 채우거나, Claude에게 "오와 로그 와인 설명 채워줘"라고 부탁하세요.</span></div>`}
+    <div class="row right"><button class="btn plain" id="infEdit">${has?"설명 수정":"설명 쓰기"}</button></div>`);
+  $("infEdit").onclick=()=>openInfoEdit(w);
+}
+function openInfoEdit(w){
+  const info=w.info||{}; let busy=false;
+  openSheet(`<div class="sheet-head"><h3 class="sect-title">와인 설명 · ${esc(w.name)}</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    ${INFO_FIELDS.map(([k,lab])=>{ const long=/Note$/.test(k); return `<label class="fld"><span>${lab}</span>${long?`<textarea data-if="${k}" rows="4" maxlength="1200">${esc(info[k]||"")}</textarea>`:`<input type="text" data-if="${k}" value="${esc(info[k]||"")}" maxlength="120">`}</label>`; }).join("")}
+    <div class="row right"><button class="btn plain" data-close>취소</button><button class="btn" id="infSave">저장</button></div>`);
+  $("infSave").onclick=async()=>{ if(busy) return; busy=true; const ni={};
+    $("sheetPanel").querySelectorAll("[data-if]").forEach(el=>{ const v=el.value.trim(); if(v) ni[el.dataset.if]=v; });
+    try{ await Store.saveWine({...w,info:ni}); closeSheet(); toast("설명을 저장했어요"); setTimeout(()=>openInfoSheet(w.id),50); }catch(e){ busy=false; toast("저장하지 못했어요"); } };
+}
+
+/* 사진 줄이기 */
+async function shrink(file,max=900){
+  const img=await new Promise((res,rej)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=URL.createObjectURL(file);});
+  const sc=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(img.src);
+  return await new Promise(res=>c.toBlob(res,"image/jpeg",0.82));
+}
+
+/* 와인 추가·수정 */
+function openWineSheet(w){
+  const isNew=!w; const d=w||{name:"",vintage:"",price:"",style:"레드",label:""}; let style=d.style||"레드", label=d.label||"", busy=false;
+  openSheet(`<div class="sheet-head"><h3 class="sect-title">${isNew?"와인 추가":"와인 수정"}</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    <label class="fld"><span>와인 이름</span><input type="text" id="fName" value="${esc(d.name)}" placeholder="예: 바슈홍 상세흐" maxlength="80"></label>
+    <div class="grid2"><label class="fld"><span>빈티지</span><input type="text" id="fVin" value="${esc(d.vintage)}" placeholder="2023, NV" maxlength="10"></label>
+    <label class="fld"><span>가격(원)</span><input type="number" id="fPrice" value="${esc(d.price||"")}" inputmode="numeric" placeholder="선택"></label></div>
+    <div class="fld"><span>종류</span><div class="chips" id="fStyleChips"></div></div>
+    <div class="fld"><span>라벨 사진</span><div class="labelPick"><div id="fLabelPrev"></div><button class="btn ghost small" id="fLabelBtn" type="button">사진 찍기·고르기</button><button class="btn plain small" id="fLabelDel" type="button">빼기</button></div></div>
+    <div class="row right">${isNew?"":`<button class="btn plain small" id="fArchive" style="margin-right:auto">보관함으로</button>`}<button class="btn plain" data-close>취소</button><button class="btn" id="fSave">${isNew?"추가":"저장"}</button></div>`);
+  const drawStyle=()=>{$("fStyleChips").innerHTML=STYLES.map(s=>`<button class="chip wide" data-s="${s}" aria-pressed="${style===s}">${s}</button>`).join("");};
+  const drawLabel=()=>{$("fLabelPrev").innerHTML=label?`<img src="${esc(label)}" alt="라벨 미리보기">`:`<div class="thumb ph">없음</div>`; $("fLabelDel").hidden=!label;};
+  drawStyle(); drawLabel();
+  $("fStyleChips").onclick=e=>{const b=e.target.closest("[data-s]"); if(b){style=b.dataset.s; drawStyle();}};
+  $("fLabelDel").onclick=()=>{label=""; drawLabel();};
+  $("fLabelBtn").onclick=()=>{ const fi=$("fileIn"); fi.value=""; fi.onchange=async()=>{ const f=fi.files[0]; if(!f) return; const btn=$("fLabelBtn"); btn.disabled=true; btn.textContent="올리는 중…";
+    try{ const blob=await shrink(f); label=await Store.uploadLabel(blob); drawLabel(); }catch(err){ toast("사진을 올리지 못했어요"); } btn.disabled=false; btn.textContent="사진 찍기·고르기"; }; fi.click(); };
+  if(!isNew) $("fArchive").onclick=()=>confirmBox(`"${d.name}"을(를) 보관함으로 옮길까요? 모임 기록 탭 아래 보관함에서 언제든 복구할 수 있어요.`,"옮기기",async()=>{ await Store.saveWine({...w,archived:true}); toast("보관함으로 옮겼어요"); });
+  $("fSave").onclick=async()=>{ if(busy) return; const name=$("fName").value.trim(); if(!name){ $("fName").focus(); return; } busy=true;
+    const order=isNew?meetWines(S.meetId).reduce((m,x)=>Math.max(m,x.order||0),0)+1:w.order;
+    const row={...(w||{}),id:isNew?uid():w.id,meetingId:isNew?S.meetId:w.meetingId,order,name,vintage:$("fVin").value.trim(),price:Number($("fPrice").value)||0,style,label,archived:false,createdAt:w?.createdAt||new Date().toISOString()};
+    try{ await Store.saveWine(row); closeSheet(); toast(isNew?"와인을 추가했어요":"수정했어요"); }catch(err){ busy=false; toast("저장하지 못했어요"); } };
+}
+$("openAddWine").addEventListener("click",()=>{ if(!S.meetId){ toast("먼저 모임을 만들어주세요"); return; } openWineSheet(null); });
+
+/* 모임 추가·수정 */
+function openMeetEdit(m){
+  const isNew=!m; const d=m||{title:"",date:"",place:"",attendees:"",memo:""}; let busy=false;
+  openSheet(`<div class="sheet-head"><h3 class="sect-title">${isNew?"새 모임":"모임 수정"}</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    <label class="fld"><span>모임 이름</span><input type="text" id="mTitle" value="${esc(d.title)}" placeholder="예: 12월 오와" maxlength="60"></label>
+    <div class="grid2"><label class="fld"><span>날짜</span><input type="date" id="mDate" value="${esc(d.date)}"></label>
+    <label class="fld"><span>장소</span><input type="text" id="mPlace" value="${esc(d.place)}" placeholder="선택" maxlength="40"></label></div>
+    <label class="fld"><span>참석자</span><input type="text" id="mAtt" value="${esc(d.attendees)}" placeholder="예: 재홍, 민수, 지영" maxlength="200"></label>
+    <label class="fld"><span>한 줄 후기·메모</span><textarea id="mMemo" maxlength="500" placeholder="선택">${esc(d.memo)}</textarea></label>
+    <div class="row right">${isNew?"":`<button class="btn plain small" id="mArchive" style="margin-right:auto">보관함으로</button>`}<button class="btn plain" data-close>취소</button><button class="btn" id="mSave">${isNew?"만들기":"저장"}</button></div>`);
+  if(!isNew) $("mArchive").onclick=()=>confirmBox(`"${d.title}" 모임을 보관함으로 옮길까요? 와인과 평가는 그대로 남고, 보관함에서 언제든 복구할 수 있어요.`,"옮기기",async()=>{ await Store.saveMeeting({...m,archived:true}); toast("보관함으로 옮겼어요"); });
+  $("mSave").onclick=async()=>{ if(busy) return; const title=$("mTitle").value.trim(); if(!title){ $("mTitle").focus(); return; } busy=true;
+    const row={...(m||{}),id:isNew?uid():m.id,title,date:$("mDate").value,place:$("mPlace").value.trim(),attendees:$("mAtt").value.trim(),memo:$("mMemo").value.trim(),archived:false,createdAt:m?.createdAt||new Date().toISOString()};
+    try{ await Store.saveMeeting(row); if(isNew){ S.meetId=row.id; lsSet("owa-meet",row.id); location.hash="#rate"; } closeSheet(); toast(isNew?"모임을 만들었어요":"수정했어요"); }catch(err){ busy=false; toast("저장하지 못했어요"); } };
+}
+$("openAddMeet").addEventListener("click",()=>openMeetEdit(null));
+
+/* 모임 상세 */
+function openMeetSheet(id){
+  const m=meetById(id); if(!m) return; const ws=meetWines(id); const st=ws.map(wineStats).sort((a,b)=>(b.avg??-1)-(a.avg??-1));
+  const spend=ws.reduce((a,w)=>a+(+w.price||0),0); const raters=new Set(); st.forEach(s=>s.rs.forEach(r=>raters.add(r.member)));
+  openSheet(`<div class="sheet-head"><h3 class="sect-title">${esc(m.title)}</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    <div>${m.date?`<div class="kv"><span>날짜</span><b>${esc(m.date)}</b></div>`:""}${m.place?`<div class="kv"><span>장소</span><b>${esc(m.place)}</b></div>`:""}
+    ${m.attendees?`<div class="kv"><span>참석자</span><b>${esc(m.attendees)}</b></div>`:""}<div class="kv"><span>와인</span><b>${ws.length}병${spend?" · "+won(spend):""}</b></div><div class="kv"><span>평가한 회원</span><b>${raters.size}명</b></div></div>
+    ${m.memo?`<div class="notice">${esc(m.memo)}</div>`:""}
+    <div class="lst">${st.map((s,i)=>`<div class="it" style="grid-template-columns:24px auto 1fr auto"><span class="n">${s.avg!=null?i+1:"–"}</span>${thumb(s.w,"")}<span>${wname(s.w)}<br><span class="meta">${esc(s.w.style)}${s.w.price?" · "+won(s.w.price):""}${s.rbN?` · 재구매 ${Math.round(s.yes/s.rbN*100)}%`:""}</span></span><b>${fmt(s.avg)}</b></div>`).join("")||'<div class="empty">와인이 없어요.</div>'}</div>
+    <div class="row right"><button class="btn plain" id="mdEdit">정보 수정</button><button class="btn" id="mdPick">${m.id===S.meetId?"평가하러 가기":"이 모임 선택"}</button></div>`);
+  $("mdEdit").onclick=()=>openMeetEdit(m);
+  $("mdPick").onclick=()=>{ S.meetId=m.id; lsSet("owa-meet",m.id); closeSheet(); location.hash="#rate"; renderAll(); };
+}
+
+/* CSV 내보내기 */
+function buildCSV(){
+  const members=[...new Set(S.ratings.map(r=>r.member))].sort();
+  const head=["모임","날짜","장소","순서","와인","빈티지","종류","가격","평균","향","맛","여운","평가 수","재구매 있음 %",...members];
+  const q=v=>{const s=String(v??""); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+  const rows=live().wines.filter(w=>meetById(w.meetingId)&&!meetById(w.meetingId).archived).map(w=>{const m=meetById(w.meetingId); const s=wineStats(w);
+    return [m.title,m.date,m.place,w.order,w.name,w.vintage,w.style,w.price||"",s.avg?.toFixed(2)??"",s.a?.toFixed(2)??"",s.t?.toFixed(2)??"",s.f?.toFixed(2)??"",s.n,s.rbN?Math.round(s.yes/s.rbN*100):"",
+      ...members.map(u=>{const r=s.rs.find(x=>x.member===u); const t=total(r); return t!=null?t.toFixed(2):"";})];})
+    .sort((a,b)=>String(b[1]).localeCompare(String(a[1]))||a[3]-b[3]);
+  return [head,...rows].map(r=>r.map(q).join(",")).join("\n");
+}
+$("exportBtn").addEventListener("click",()=>{
+  const csv=buildCSV(); const name=`오와로그_${new Date().toISOString().slice(0,10)}.csv`;
+  try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }catch(e){}
+  openSheet(`<div class="sheet-head"><h3 class="sect-title">CSV 내보내기</h3><button class="x" data-close aria-label="닫기">×</button></div>
+    <p class="meta" style="margin:0">다운로드가 안 되면 아래 내용을 복사해서 엑셀이나 구글 시트에 붙여넣으세요.</p>
+    <textarea readonly style="min-height:160px; font-size:12px">${esc(csv)}</textarea>
+    <div class="row right"><button class="btn" id="cpBtn">복사</button></div>`);
+  $("cpBtn").onclick=async()=>{ try{ await navigator.clipboard.writeText(csv); toast("복사했어요"); }catch(e){ toast("길게 눌러 직접 복사해주세요"); } };
+});
+
+/* 이름 */
+function askName(){
+  openSheet(`<h3 class="sect-title">반가워요!</h3><p class="meta" style="margin:0">평가에 표시될 이름을 정해주세요. 모임 안에서 겹치지 않게 써주세요.</p>
+    <input type="text" id="nmIn" value="${esc(S.me)}" placeholder="예: 재홍" maxlength="20">
+    <div class="row right"><button class="btn" id="nmSave">시작하기</button></div>`,{center:true});
+  const go=()=>{ const v=$("nmIn").value.trim(); if(!v){ $("nmIn").focus(); return; } S.me=v; lsSet("owa-me",v); closeSheet(); renderAll(); };
+  $("nmSave").onclick=go; $("nmIn").onkeydown=e=>{ if(e.key==="Enter") go(); };
+}
+$("who").addEventListener("click",askName);
+
+/* 모임 선택 */
+function renderMeetSel(){
+  const ms=[...live().meetings].sort((a,b)=>String(b.date||b.createdAt).localeCompare(String(a.date||a.createdAt)));
+  $("meetSel").innerHTML=ms.length?ms.map(m=>`<option value="${esc(m.id)}" ${m.id===S.meetId?"selected":""}>${esc(m.title)}${m.date?" · "+esc(m.date):""}</option>`).join(""):'<option>모임 없음</option>';
+}
+$("meetSel").addEventListener("change",e=>{ S.meetId=e.target.value; lsSet("owa-meet",S.meetId); renderAll(); });
+
+function renderAll(){
+  $("who").textContent=S.me?S.me+" 님":"이름 정하기";
+  renderMeetSel(); renderRate(); renderResults(); renderMembers(); renderHistory();
+}
+
+/* ===== 시작 ===== */
+function onData(d){
+  S.meetings=d.meetings; S.wines=d.wines; S.ratings=d.ratings;
+  const ms=live().meetings;
+  if(!S.meetId||!ms.find(m=>m.id===S.meetId)){ const saved=lsGet("owa-meet"); const sorted=[...ms].sort((a,b)=>String(b.date||b.createdAt).localeCompare(String(a.date||a.createdAt))); S.meetId=(ms.find(m=>m.id===saved)||sorted[0]||{}).id||null; }
+  renderAll();
+}
+(async()=>{
+  S.me=lsGet("owa-me")||"";
+  renderAll();
+  Store.onChange(onData);
+  if(DEMO){
+    await Store.init();
+    notice("미리보기 모드예요. 예시 데이터가 들어 있고, 입력한 내용은 이 기기에만 저장돼요.");
+    if(!S.me) askName();
+    return;
+  }
+  const hashKey=async raw=>{ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); };
+  const start=async key=>{
+    try{ await Store.init(key); lsSet("owa-key",key); notice(""); if(!S.me) askName(); }
+    catch(e){ lsSet("owa-key",""); askKey("암호가 맞지 않거나 연결에 실패했어요."); }
+  };
+  const askKey=(err)=>{
+    openSheet(`<h3 class="sect-title">오와 로그</h3><p class="meta" style="margin:0">모임 암호를 입력해주세요. 한 번 입력하면 이 기기에서는 다시 묻지 않아요.</p>
+      ${err?`<div class="notice">${esc(err)}</div>`:""}<input type="password" id="keyIn" placeholder="모임 암호" autocomplete="current-password">
+      <div class="row right"><button class="btn" id="keyGo">들어가기</button></div>`,{center:true,onClose:()=>{ if(!lsGet("owa-key")){ notice("모임 암호를 입력해야 볼 수 있어요. 여기를 눌러 입력하세요."); $("notice").onclick=()=>{ $("notice").onclick=null; askKey(); }; } }});
+    const go=async()=>{ const v=$("keyIn").value.trim(); if(!v) return; closeSheet(); start(await hashKey(v)); };
+    $("keyGo").onclick=go; $("keyIn").onkeydown=e=>{ if(e.key==="Enter") go(); };
+  };
+  const k=lsGet("owa-key"); if(k) start(k); else askKey();
+})();
+</script>
+</body>
+</html>
